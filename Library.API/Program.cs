@@ -1,3 +1,5 @@
+using Library.API.Middlewares;
+
 namespace Library.API;
 
 public class Program
@@ -101,6 +103,8 @@ public class Program
         await DatabaseSeeder.SeedAsync(app.Services, builder.Configuration);
 
         // ── 6. Middleware Pipeline (ORDER MATTERS) ────────────────────────────
+        app.UseGlobalExceptionHandler();
+
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
