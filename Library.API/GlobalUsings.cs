@@ -1,6 +1,7 @@
 ﻿global using Library.API.Extensions;
 global using Library.API.Middlewares;
 global using Library.Application.Common.Exceptions;
+global using Library.Application.Common.Models;
 global using Library.Infrastructure.DependencyInjection;
 global using Library.Infrastructure.Logging;
 global using Library.Infrastructure.Persistence;
