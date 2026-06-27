@@ -16,7 +16,6 @@
     <Folder Include="Logging\" />
     <Folder Include="Services\" />
     <Folder Include="Repositories\" />
-    <Folder Include="Persistence\" />
     <Folder Include="Seed\" />
   </ItemGroup>
 
