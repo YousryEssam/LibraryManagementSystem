@@ -1,17 +1,10 @@
-﻿namespace Library.Domain.Entities;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class SystemUser : AuditableEntity
+namespace Library.Domain.Entities;
+
+public class SystemUser : IdentityUser<int>
 {
     public string FullName { get; set; } = string.Empty;
-
-    public string Username { get; set; } = string.Empty;
-
-    public string Email { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Stores BCrypt hashed password — never plain text.
-    /// </summary>
-    public string PasswordHash { get; set; } = string.Empty;
 
     public UserRole Role { get; set; } = UserRole.Staff;
 
@@ -19,7 +12,12 @@ public class SystemUser : AuditableEntity
 
     public DateTime? LastLoginAt { get; set; }
 
-    // Navigation Properties
+    // ── Audit fields
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ModifiedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
+
+    // ── Navigation Properties ─────────────────────────────────────────────────
     public ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
     public ICollection<BorrowingTransaction> ProcessedTransactions { get; set; } = new List<BorrowingTransaction>();
 }

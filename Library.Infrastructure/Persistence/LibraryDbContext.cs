@@ -1,31 +1,38 @@
 ﻿namespace Library.Infrastructure.Persistence;
 
-public class LibraryDbContext : DbContext
+public class LibraryDbContext : IdentityDbContext<SystemUser, IdentityRole<int>, int>
 {
     public LibraryDbContext(DbContextOptions<LibraryDbContext> options) : base(options) { }
 
-    // ── DbSets ────────────────────────────────────────────────────────────
+    // ── DbSets ────────────────────────────────────────────────────────────────
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Author> Authors => Set<Author>();
     public DbSet<BookAuthor> BookAuthors => Set<BookAuthor>();
     public DbSet<Publisher> Publishers => Set<Publisher>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Member> Members => Set<Member>();
-    public DbSet<SystemUser> SystemUsers => Set<SystemUser>();
     public DbSet<BorrowingTransaction> BorrowingTransactions => Set<BorrowingTransaction>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
-    // ── Model Configuration ───────────────────────────────────────────────
+    // ── Model Configuration ───────────────────────────────────────────────────
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all IEntityTypeConfiguration<T> classes from this assembly
-        // This picks up every *Configuration.cs automatically — no need to list each one
+        // Rename Identity tables to cleaner names (optional but looks better in DB)
+        modelBuilder.Entity<SystemUser>().ToTable("SystemUsers");
+        modelBuilder.Entity<IdentityRole<int>>().ToTable("Roles");
+        modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
+        modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+        modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+        modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+        modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
+
+        // Apply all IEntityTypeConfiguration<T> from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(LibraryDbContext).Assembly);
     }
 
-    // ── Auto-set Audit Fields on SaveChanges ──────────────────────────────
+    // ── Auto-set Audit Fields on SaveChanges ──────────────────────────────────
     public override int SaveChanges()
     {
         SetAuditFields();
@@ -40,9 +47,7 @@ public class LibraryDbContext : DbContext
 
     private void SetAuditFields()
     {
-        var entries = ChangeTracker.Entries<AuditableEntity>();
-
-        foreach (var entry in entries)
+        foreach (var entry in ChangeTracker.Entries<AuditableEntity>())
         {
             switch (entry.State)
             {
@@ -52,12 +57,30 @@ public class LibraryDbContext : DbContext
 
                 case EntityState.Modified:
                     entry.Entity.ModifiedAt = DateTime.UtcNow;
-                    // Prevent accidental overwrite of CreatedAt on update
                     entry.Property(e => e.CreatedAt).IsModified = false;
                     break;
 
                 case EntityState.Deleted:
-                    // Intercept hard-delete and convert to soft-delete
+                    entry.State = EntityState.Modified;
+                    entry.Entity.DeletedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<SystemUser>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.ModifiedAt = DateTime.UtcNow;
+                    entry.Property(e => e.CreatedAt).IsModified = false;
+                    break;
+
+                case EntityState.Deleted:
                     entry.State = EntityState.Modified;
                     entry.Entity.DeletedAt = DateTime.UtcNow;
                     break;
