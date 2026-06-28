@@ -1,4 +1,4 @@
-﻿namespace Library.Application.Abstractions.Persistence.Repositories;
+﻿namespace Library.Application.Abstractions.Repositories;
 
 public interface IAuthorRepository : IRepository<Author>
 {

@@ -1,6 +1,4 @@
-﻿using Library.Application.DTOs.Books;
-
-namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Services;
 
 public sealed class BookService : IBookService
 {

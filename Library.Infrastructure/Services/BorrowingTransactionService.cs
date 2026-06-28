@@ -1,6 +1,4 @@
-﻿using Library.Application.DTOs.Borrowing;
-
-namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Services;
 
 public sealed class BorrowingTransactionService : IBorrowingTransactionService
 {

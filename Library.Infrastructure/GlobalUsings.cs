@@ -1,6 +1,11 @@
-﻿global using Library.Application.Abstractions.Persistence.Repositories;
+﻿global using Library.Application.Abstractions.Repositories;
 global using Library.Application.DTOs.Auth;
+global using Library.Application.DTOs.Authors;
+global using Library.Application.DTOs.Books;
+global using Library.Application.DTOs.Borrowing;
+global using Library.Application.DTOs.Categories;
 global using Library.Application.DTOs.Members;
+global using Library.Application.DTOs.Publishers;
 global using Library.Application.Interfaces;
 global using Library.Domain.Common;
 global using Library.Domain.Constants;

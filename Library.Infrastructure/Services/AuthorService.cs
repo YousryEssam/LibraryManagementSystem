@@ -1,6 +1,4 @@
-﻿using Library.Application.DTOs.Authors;
-
-namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Services;
 
 public sealed class AuthorService : IAuthorService
 {
