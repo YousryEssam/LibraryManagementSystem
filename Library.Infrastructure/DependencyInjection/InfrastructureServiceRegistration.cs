@@ -56,6 +56,9 @@ public static class InfrastructureServiceRegistration
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        services.AddScoped<IAuthorRepository, AuthorRepository>();
+        services.AddScoped<IAuthorService, AuthorService>();
+
         return services;
     }
 
