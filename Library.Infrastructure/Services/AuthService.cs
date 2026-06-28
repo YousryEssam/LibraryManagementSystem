@@ -1,8 +1,4 @@
-﻿using Library.Application.DTOs.Auth;
-using Library.Application.Interfaces;
-using Library.Domain.Constants;
-
-namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Services;
 
 public sealed class AuthService : IAuthService
 {

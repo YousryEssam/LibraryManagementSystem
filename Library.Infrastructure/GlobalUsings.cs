@@ -1,4 +1,5 @@
 ﻿global using Library.Application.Abstractions.Persistence.Repositories;
+global using Library.Application.DTOs.Auth;
 global using Library.Application.Interfaces;
 global using Library.Domain.Common;
 global using Library.Domain.Constants;
@@ -20,4 +21,3 @@ global using Serilog.Core;
 global using Serilog.Events;
 global using System.Security.Claims;
 global using System.Text;
-
