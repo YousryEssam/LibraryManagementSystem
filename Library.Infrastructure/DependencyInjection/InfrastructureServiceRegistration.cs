@@ -65,6 +65,10 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IPublisherRepository, PublisherRepository>();
         services.AddScoped<IPublisherService, PublisherService>();
 
+        services.AddScoped<IBorrowingTransactionRepository, BorrowingTransactionRepository>();
+        services.AddScoped<IBorrowingTransactionService, BorrowingTransactionService>();
+        services.AddScoped<IBookRepository, BookRepository>();
+
 
         return services;
     }
