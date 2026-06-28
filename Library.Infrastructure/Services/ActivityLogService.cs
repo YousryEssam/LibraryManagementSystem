@@ -1,6 +1,4 @@
-﻿using Library.Infrastructure.Repositories;
-
-namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Services;
 
 public sealed class ActivityLogService : IActivityLogService
 {

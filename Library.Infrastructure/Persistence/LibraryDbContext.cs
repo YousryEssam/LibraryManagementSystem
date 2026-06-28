@@ -1,4 +1,4 @@
-﻿namespace Library.Infrastructure.Repositories;
+﻿namespace Library.Infrastructure.Persistence;
 
 public class LibraryDbContext : IdentityDbContext<SystemUser, IdentityRole<int>, int>
 {
