@@ -1,3 +1,5 @@
+using Library.Infrastructure.Repositories;
+
 namespace Library.API;
 
 public class Program

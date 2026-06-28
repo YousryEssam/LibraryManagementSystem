@@ -1,4 +1,4 @@
-﻿namespace Library.Infrastructure.Persistence;
+﻿namespace Library.Infrastructure.Repositories;
 
 /// <summary>
 /// Seeds the database with required roles and a default admin user.

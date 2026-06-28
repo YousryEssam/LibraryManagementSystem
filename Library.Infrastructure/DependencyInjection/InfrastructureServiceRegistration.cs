@@ -2,89 +2,86 @@
 
 public static class InfrastructureServiceRegistration
 {
-    public static IServiceCollection AddInfrastructureServices(
-       this IServiceCollection services,
-       IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // ── 1. Database ───────────────────────────────────────────────────────
-        services.AddDbContext<LibraryDbContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sql =>
-                {
-                    sql.MigrationsAssembly(typeof(LibraryDbContext).Assembly.FullName);
-                    sql.EnableRetryOnFailure(
-                        maxRetryCount: 5,
-                        maxRetryDelay: TimeSpan.FromSeconds(10),
-                        errorNumbersToAdd: null);
-                }));
-
-        // ── 2. MS Identity ────────────────────────────────────────────────────
         services
-            .AddIdentity<SystemUser, IdentityRole<int>>(options =>
-            {
-                // Password rules
-                options.Password.RequiredLength = 8;
-                options.Password.RequireDigit = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireNonAlphanumeric = false;
-
-                // Lockout — built-in brute-force protection
-                options.Lockout.MaxFailedAccessAttempts = 5;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-                options.Lockout.AllowedForNewUsers = true;
-
-                // User
-                options.User.RequireUniqueEmail = true;
-            })
-            .AddEntityFrameworkStores<LibraryDbContext>()  // Wires UserManager → LibraryDbContext
-            .AddDefaultTokenProviders();                    // For password-reset tokens
-
-        // ── 3. JWT Authentication ─────────────────────────────────────────────
-        services.AddJwtAuthentication(configuration);
-
-        // ── 4. Repositories & Services 
-
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IActivityLogService, ActivityLogService>();
-
-        services.AddScoped<IMemberService, MemberService>();
-        services.AddScoped<IMemberRepository, MemberRepository>();
-
-        services.AddHttpContextAccessor();
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-        services.AddScoped<IAuthorRepository, AuthorRepository>();
-        services.AddScoped<IAuthorService, AuthorService>();
-
-        services.AddScoped<ICategoryRepository, CategoryRepository>();
-        services.AddScoped<ICategoryService, CategoryService>();
-
-        services.AddScoped<IPublisherRepository, PublisherRepository>();
-        services.AddScoped<IPublisherService, PublisherService>();
-
-        services.AddScoped<IBorrowingTransactionRepository, BorrowingTransactionRepository>();
-        services.AddScoped<IBorrowingTransactionService, BorrowingTransactionService>();
-
-        services.AddScoped<IBookRepository, BookRepository>();
-        services.AddScoped<IBookService, BookService>();
-
-        services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
-        services.AddScoped<IBookAuthorService, BookAuthorService>();
+            .AddDatabase(configuration)
+            .AddIdentityServices(configuration)
+            .AddJwtAuthentication(configuration)
+            .AddAuthorizationPolicies()
+            .AddApplicationServices()
+            .AddHttpContextAccessor();
 
         return services;
     }
 
-    // ── JWT Helper ────────────────────────────────────────────────────────────
-    private static IServiceCollection AddJwtAuthentication(
-        this IServiceCollection services,
-        IConfiguration configuration)
+
+    // ── Database ───────────────────────────────────────────────────────
+    private static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtSection = configuration.GetSection("Jwt");
-        var secretKey = jwtSection["SecretKey"]
-                         ?? throw new InvalidOperationException("JWT SecretKey is not configured.");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' is missing.");
+
+        services.AddDbContext<LibraryDbContext>(options =>
+            options.UseSqlServer(connectionString, sql =>
+            {
+                sql.MigrationsAssembly(typeof(LibraryDbContext).Assembly.FullName);
+                sql.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+            }));
+
+        return services;
+    }
+
+    private static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        // Repositories
+        services.AddScoped<IAuthorRepository, AuthorRepository>();
+        services.AddScoped<IBookRepository, BookRepository>();
+        services.AddScoped<IBookAuthorRepository, BookAuthorRepository>();
+        services.AddScoped<IBorrowingTransactionRepository, BorrowingTransactionRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IMemberRepository, MemberRepository>();
+        services.AddScoped<IPublisherRepository, PublisherRepository>();
+
+        // Services
+        services.AddScoped<IActivityLogService, ActivityLogService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthorService, AuthorService>();
+        services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IBookAuthorService, BookAuthorService>();
+        services.AddScoped<IBorrowingTransactionService, BorrowingTransactionService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IMemberService, MemberService>();
+        services.AddScoped<IPublisherService, PublisherService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(Policies.AdminOnly, p => p.RequireRole(Roles.Administrator));
+
+            options.AddPolicy(Policies.LibrarianUp, p => p.RequireRole(Roles.Administrator, Roles.Librarian));
+
+            options.AddPolicy(Policies.StaffUp, p => p.RequireRole(Roles.Administrator, Roles.Librarian, Roles.Staff));
+        });
+
+        return services;
+    }
+
+    private static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        var jwtOptions = configuration
+            .GetSection(JwtOptions.SectionName)
+            .Get<JwtOptions>()
+            ?? throw new InvalidOperationException("JWT configuration section is missing.");
 
         services
             .AddAuthentication(options =>
@@ -100,21 +97,34 @@ public static class InfrastructureServiceRegistration
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSection["Issuer"],
-                    ValidAudience = jwtSection["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                                                  Encoding.UTF8.GetBytes(secretKey)),
-                    ClockSkew = TimeSpan.Zero  // No grace period on expiry
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 
-        // ── Authorization Policies ────────────────────────────────────────────
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AdminOnly", p => p.RequireRole("Administrator"));
-            options.AddPolicy("LibrarianUp", p => p.RequireRole("Administrator", "Librarian"));
-            options.AddPolicy("StaffUp", p => p.RequireRole("Administrator", "Librarian", "Staff"));
-        });
+        return services;
+    }
+
+    private static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        var identitySection = configuration.GetSection("Identity");
+
+        services
+            .AddIdentity<SystemUser, IdentityRole<int>>(options =>
+            {
+                identitySection.GetSection("Password").Bind(options.Password);
+
+                var lockoutMinutes = identitySection.GetValue<int>("Lockout:LockoutMinutes", 15);
+                options.Lockout.MaxFailedAccessAttempts =
+                    identitySection.GetValue<int>("Lockout:MaxFailedAccessAttempts", 5);
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutMinutes);
+                options.Lockout.AllowedForNewUsers = true;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<LibraryDbContext>()
+            .AddDefaultTokenProviders();
 
         return services;
     }

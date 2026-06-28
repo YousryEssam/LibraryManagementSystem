@@ -1,4 +1,4 @@
-﻿namespace Library.Infrastructure.Persistence.Repositories;
+﻿namespace Library.Infrastructure.Repositories;
 
 public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
 {

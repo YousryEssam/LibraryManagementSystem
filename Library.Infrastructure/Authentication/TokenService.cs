@@ -2,7 +2,7 @@
 using Library.Application.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Library.Infrastructure.Services;
+namespace Library.Infrastructure.Authentication;
 
 public sealed class TokenService : ITokenService
 {

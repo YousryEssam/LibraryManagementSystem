@@ -1,4 +1,4 @@
-﻿namespace Library.Infrastructure.Persistence.Repositories;
+﻿namespace Library.Infrastructure.Repositories;
 
 public sealed class PublisherRepository : Repository<Publisher>, IPublisherRepository
 {

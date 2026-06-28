@@ -1,4 +1,4 @@
-﻿namespace Library.Infrastructure.Services;
+﻿namespace Library.Infrastructure.Authentication;
 
 using System.Security.Claims;
 
