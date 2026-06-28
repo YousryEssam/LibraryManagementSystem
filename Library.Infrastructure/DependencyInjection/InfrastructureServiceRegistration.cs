@@ -50,6 +50,12 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IActivityLogService, ActivityLogService>();
 
+        services.AddScoped<IMemberService, MemberService>();
+        services.AddScoped<IMemberRepository, MemberRepository>();
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
         return services;
     }
 

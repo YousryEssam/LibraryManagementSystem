@@ -1,11 +1,13 @@
 ﻿global using Library.Application.Abstractions.Persistence.Repositories;
 global using Library.Application.DTOs.Auth;
+global using Library.Application.DTOs.Members;
 global using Library.Application.Interfaces;
 global using Library.Domain.Common;
 global using Library.Domain.Constants;
 global using Library.Domain.Entities;
 global using Library.Domain.Enums;
 global using Library.Infrastructure.Persistence;
+global using Library.Infrastructure.Persistence.Repositories;
 global using Library.Infrastructure.Services;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Http;

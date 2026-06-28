@@ -11,4 +11,6 @@ public interface IRepository<TEntity> : IReadRepository<TEntity> where TEntity :
     void Delete(TEntity entity);
 
     void DeleteRange(IEnumerable<TEntity> entities);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

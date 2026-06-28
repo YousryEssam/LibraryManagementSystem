@@ -52,4 +52,9 @@ public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
         DbSet.RemoveRange(entities);
     }
+
+    public virtual async Task SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        await Context.SaveChangesAsync(cancellationToken);
+    }
 }
