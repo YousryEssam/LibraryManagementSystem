@@ -46,6 +46,10 @@ public static class InfrastructureServiceRegistration
 
         // ── 4. Repositories & Services 
 
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IActivityLogService, ActivityLogService>();
+
         return services;
     }
 

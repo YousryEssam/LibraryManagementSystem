@@ -1,8 +1,11 @@
 ﻿global using Library.Application.Abstractions.Persistence.Repositories;
+global using Library.Application.Interfaces;
 global using Library.Domain.Common;
+global using Library.Domain.Constants;
 global using Library.Domain.Entities;
 global using Library.Domain.Enums;
 global using Library.Infrastructure.Persistence;
+global using Library.Infrastructure.Services;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Identity;
@@ -12,9 +15,9 @@ global using Microsoft.EntityFrameworkCore.ChangeTracking;
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
-global using Microsoft.Extensions.Logging;
 global using Microsoft.IdentityModel.Tokens;
 global using Serilog.Core;
 global using Serilog.Events;
 global using System.Security.Claims;
 global using System.Text;
+

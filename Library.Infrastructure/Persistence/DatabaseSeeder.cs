@@ -6,63 +6,41 @@
 /// </summary>
 public static class DatabaseSeeder
 {
-    public static async Task SeedAsync(IServiceProvider serviceProvider, IConfiguration configuration)
+    public static async Task SeedAsync(IServiceProvider services, IConfiguration configuration)
     {
-        var logger = serviceProvider.GetRequiredService<ILogger<LibraryDbContext>>();
-
-        // ── 1. Apply pending migrations automatically ─────────────────────────
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations applied.");
-
+        using var scope = services.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<SystemUser>>();
 
-        // ── 2. Seed Roles ─────────────────────────────────────────────────────
-        var roles = new[] { "Administrator", "Librarian", "Staff" };
-
-        foreach (var role in roles)
+        foreach (var roleName in Roles.All)
         {
-            if (!await roleManager.RoleExistsAsync(role))
-            {
-                await roleManager.CreateAsync(new IdentityRole<int>(role));
-                logger.LogInformation("Role '{Role}' created.", role);
-            }
+            if (!await roleManager.RoleExistsAsync(roleName))
+                await roleManager.CreateAsync(new IdentityRole<int>(roleName));
         }
 
-        // ── 3. Seed Default Admin User ────────────────────────────────────────
-        var adminEmail = configuration["DefaultAdminUser:Email"];
-        var adminPassword = configuration["DefaultAdminUser:Password"];
+        var adminEmail = configuration["DefaultAdminUser:Email"]
+            ?? throw new InvalidOperationException("DefaultAdminUser:Email is not configured.");
+        var adminPassword = configuration["DefaultAdminUser:Password"]
+            ?? throw new InvalidOperationException("DefaultAdminUser:Password is not configured.");
 
-        if (!string.IsNullOrEmpty(adminEmail) && !string.IsNullOrEmpty(adminPassword))
+        if (await userManager.FindByEmailAsync(adminEmail) is not null)
+            return;
+
+        var admin = new SystemUser
         {
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
-            if (adminUser == null)
-            {
-                adminUser = new SystemUser
-                {
-                    FullName = "System Administrator",
-                    UserName = "admin",
-                    Email = adminEmail,
-                    EmailConfirmed = true,
-                    IsActive = true,
-                    Role = UserRole.Administrator
-                };
+            FullName = "System Administrator",
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
 
-                var result = await userManager.CreateAsync(adminUser, adminPassword);
+        var result = await userManager.CreateAsync(admin, adminPassword);
+        if (!result.Succeeded)
+            throw new InvalidOperationException(
+                $"Failed to seed admin user: {string.Join("; ", result.Errors.Select(e => e.Description))}");
 
-                if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Administrator");
-                    logger.LogInformation("Default admin user created: {Email}", adminEmail);
-                }
-                else
-                {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    logger.LogError("Failed to create admin user: {Errors}", errors);
-                }
-            }
-        }
+        await userManager.AddToRoleAsync(admin, Roles.Administrator);
     }
 }
