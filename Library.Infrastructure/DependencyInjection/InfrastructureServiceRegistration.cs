@@ -59,6 +59,10 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IAuthorRepository, AuthorRepository>();
         services.AddScoped<IAuthorService, AuthorService>();
 
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryService, CategoryService>();
+
+
         return services;
     }
 
